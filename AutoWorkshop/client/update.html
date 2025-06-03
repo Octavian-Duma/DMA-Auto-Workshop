@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Edit Service | DMA Auto Workshop</title>
+        <link rel="stylesheet" href="styles/style.css" />
+        <link rel="stylesheet" href="styles/details.css" />
+        <script type="text/javascript" src="libs/vue.js"></script>
+        <script type="text/javascript" src="libs/axios.js"></script>
+    </head>
+    <body>
+        <div class="navbar"><a href="index.html">&larr; Home</a></div>
+        <div id="update" class="details-wrapper">
+            <div v-if="service">
+                <h1>Edit Service (ID: {{ service.id }})</h1>
+                <form @submit.prevent="updateService">
+                    <div class="form-group">
+                        <label>Customer Name:</label>
+                        <input v-model="service.customerName" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Vehicle Make:</label>
+                        <input v-model="service.vehicleDetails.make" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Vehicle Model:</label>
+                        <input v-model="service.vehicleDetails.model" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Vehicle Year:</label>
+                        <input v-model="service.vehicleDetails.year" required>
+                    </div>
+                    <div class="form-group">
+                        <label>VIN:</label>
+                        <input v-model="service.vehicleDetails.vin">
+                    </div>
+                    <div class="form-group">
+                        <label>Service Type:</label>
+                        <select v-model="service.serviceType" required>
+                            <option value="maintenance">Maintenance</option>
+                            <option value="repair">Repair</option>
+                            <option value="inspection">Inspection</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Service Description:</label>
+                        <textarea v-model="service.serviceDescription" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Technician Assigned:</label>
+                        <input v-model="service.technicianAssigned">
+                    </div>
+                    <div class="form-group">
+                        <label>Status:</label>
+                        <select v-model="service.serviceStatus">
+                            <option value="pending">Pending</option>
+                            <option value="in-progress">In Progress</option>
+                            <option value="completed">Completed</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Estimated Cost:</label>
+                        <input type="number" v-model="service.estimatedCost">
+                    </div>
+                    <div class="form-group">
+                        <label>Actual Cost:</label>
+                        <input type="number" v-model="service.actualCost">
+                    </div>
+                    <div class="form-group">
+                        <label>Service Date:</label>
+                        <input type="datetime-local" v-model="service.serviceDateTime" required>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit">Save</button>
+                        <a :href="'details.html?id='+service.id" class="btn btn-primary">Cancel</a>
+                    </div>
+                    <div v-if="message" style="margin-top: 10px; color: green;">{{ message }}</div>
+                </form>
+            </div>
+            <div v-else>
+                <p>Loading service data...</p>
+            </div>
+        </div>
+        <script src="src/update.js"></script>
+    </body>
+</html>

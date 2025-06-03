@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Service Details | DMA Auto Workshop</title>
+    <link rel="stylesheet" href="styles/style.css" />
+    <link rel="stylesheet" href="styles/details.css" />
+    <script type="text/javascript" src="libs/vue.js"></script>
+    <script type="text/javascript" src="libs/axios.js"></script>
+</head>
+
+<body>
+    <div class="navbar"><a href="index.html">&larr; Home</a></div>
+    <div id="details" class="details-wrapper">
+        <div v-if="service">
+            <h1>Service Details (ID: {{ service.id }})</h1>
+            <div class="details-card">
+                <div class="details-row"><span class="details-label">Customer:</span> <span>{{ service.customerName }}</span></div>
+                <div class="details-row"><span class="details-label">Vehicle:</span> <span>{{ service.vehicleDetails.make }} {{ service.vehicleDetails.model }} ({{ service.vehicleDetails.year }})</span></div>
+                <div class="details-row"><span class="details-label">VIN:</span> <span>{{ service.vehicleDetails.vin }}</span></div>
+                <div class="details-row"><span class="details-label">Type:</span> <span>{{ service.serviceType }}</span></div>
+                <div class="details-row"><span class="details-label">Description:</span> <span>{{ service.serviceDescription }}</span></div>
+                <div class="details-row"><span class="details-label">Technician:</span> <span>{{ service.technicianAssigned }}</span></div>
+                <div class="details-row"><span class="details-label">Status:</span> <span>{{ service.serviceStatus }}</span></div>
+                <div class="details-row"><span class="details-label">Estimated Cost:</span> <span>{{ service.estimatedCost }} RON</span></div>
+                <div class="details-row"><span class="details-label">Actual Cost:</span> <span>{{ service.actualCost }} RON</span></div>
+                <div class="details-row"><span class="details-label">Date:</span> <span>{{ formatDate(service.serviceDateTime) }}</span></div>
+            </div>
+            <div class="details-actions">
+                <a :href="'update.html?id='+service.id" class="btn btn-primary">Edit</a>
+            </div>
+        </div>
+        <div v-else>
+            <p>Loading service details...</p>
+        </div>
+    </div>
+    <script src="src/details.js"></script>
+</body>
+
+</html>

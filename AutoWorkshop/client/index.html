@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>DMA Auto Workshop - Repair Management</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles/style.css" />
+  <link rel="stylesheet" href="styles/details.css" />
+  <script type="text/javascript" src="libs/vue.js"></script>
+  <script type="text/javascript" src="libs/axios.js"></script>
+  <link rel="icon" href="https://img.icons8.com/ios-filled/50/000000/car-repair.png">
+  <style>
+    .status-pending { color: #ff9800; font-weight: bold; }
+    .status-in-progress { color: #2196F3; font-weight: bold; }
+    .status-completed { color: #4CAF50; font-weight: bold; }
+    .icon-btn { background: none; border: none; cursor: pointer; font-size: 1.2em; margin: 0 4px; }
+    .icon-btn:focus { outline: 2px solid #2196F3; }
+    
+    .toolbar-row {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 28px;
+      width: 100%;
+      max-width: 1040px;
+      margin: 0 auto 28px auto;
+    }
+    .toolbar-search-wrap {
+      display: flex;
+      flex: 1 1 480px;
+      min-width: 410px;
+      max-width: 550px;
+      height: 44px;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+      overflow: hidden;
+      align-items: center;
+    }
+    .toolbar-search {
+      flex: 1 1 0;
+      border: none;
+      outline: none;
+      padding: 0 12px;
+      height: 44px;
+      font-size: 1em;
+      background: transparent;
+      border-radius: 6px 0 0 6px;
+    }
+    .toolbar-btn {
+      height: 44px;
+      min-width: 178px;
+      max-width: 210px;
+      font-size: 1em;
+      font-weight: bold;
+      border: none;
+      border-radius: 6px;
+      margin: 0;
+      transition: background 0.2s, transform 0.1s;
+      box-shadow: 0 2px 8px rgba(76,175,80,0.08);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .toolbar-clear {
+      background: #2196F3;
+      color: #fff;
+      border-radius: 0 6px 6px 0;
+      min-width: 86px;
+      max-width: 110px;
+      padding: 0 18px;
+    }
+    .toolbar-clear:hover { background: #1769aa; }
+    .toolbar-sort {
+      background: #2196F3;
+      color: #fff;
+    }
+    .toolbar-sort:hover { background: #1769aa; }
+    .toolbar-add {
+      background: #4CAF50;
+      color: #fff;
+    }
+    .toolbar-add:hover { background: #388e3c; transform: scale(1.04); }
+    @media (max-width: 1050px) {
+      .toolbar-row { flex-direction: column; gap: 14px; }
+      .toolbar-search-wrap, .toolbar-btn { width: 100%; min-width: 0; max-width: none; }
+    }
+    .welcome { text-align: center; margin-bottom: 24px; }
+    .welcome .emoji { font-size: 2.5em; }
+    .loader { border: 6px solid #f3f3f3; border-top: 6px solid #2196F3; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 40px auto; }
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+    .empty-placeholder { text-align: center; color: #aaa; margin: 40px 0; font-size: 1.2em; }
+    .wide-modal { min-width: 420px; max-width: 600px; }
+    @media (max-width: 700px) { .wide-modal { min-width: 95vw; max-width: 99vw; } }
+  </style>
+</head>
+
+<body>
+  <div id="app">
+    <div class="welcome">
+      <span class="emoji">🔧🚗</span>
+      <h1>DMA Auto Workshop</h1>
+      <p>Welcome to your professional car repair management app!</p>
+    </div>
+    <div class="toolbar-row">
+      <div class="toolbar-search-wrap">
+        <input v-model="searchQuery" class="toolbar-search" placeholder="Search by customer, vehicle, status...">
+        <button class="toolbar-btn toolbar-clear" @click="searchQuery = ''">Clear</button>
+      </div>
+      <button class="toolbar-btn toolbar-sort" @click="toggleSort">
+        Sort by Date <span v-if="sortAsc">⬆️</span><span v-else>⬇️</span>
+      </button>
+      <button class="toolbar-btn toolbar-add" v-on:click="showAddServiceForm = true">
+        <span style="font-size:1.2em;">➕</span> Add New Repair
+      </button>
+    </div>
+    <div v-if="loading" class="loader"></div>
+    <div v-else>
+      <div v-if="filteredServices.length === 0" class="empty-placeholder">
+        <span style="font-size:2em;">🛠️</span><br>
+        No repair appointments found.<br>
+        Add your first repair!
+      </div>
+      <div v-else>
+        <div class="service-list">
+          <div class="service-row-header">
+            <div>Customer</div>
+            <div>Vehicle</div>
+            <div>Repair Type</div>
+            <div>Status</div>
+            <div>Date</div>
+            <div>Actions</div>
+          </div>
+          <div v-for="service in filteredServices" :key="service.id" class="service-row">
+            <div>{{ service.customerName }}</div>
+            <div>{{ service.vehicleDetails.make }} {{ service.vehicleDetails.model }}</div>
+            <div>{{ service.serviceType }}</div>
+            <div :class="'status-' + service.serviceStatus">{{ service.serviceStatus }}</div>
+            <div>{{ formatDate(service.serviceDateTime) }}</div>
+            <div class="service-actions">
+              <a :href="'details.html?id='+service.id" class="icon-btn" title="Details">🔍</a>
+              <a :href="'update.html?id='+service.id" class="icon-btn" title="Edit">✏️</a>
+              <button class="icon-btn" title="Delete" @click="confirmDelete(service.id)">🗑️</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal" v-if="showAddServiceForm">
+      <div class="modal-content wide-modal">
+        <h2>Add New Repair</h2>
+        <form @submit.prevent="addService" style="max-height:70vh;overflow-y:auto;">
+          <div class="form-group">
+            <label>Customer Name:</label>
+            <input v-model="newService.customerName" required>
+          </div>
+          <div class="form-group">
+            <label>Vehicle Make:</label>
+            <input v-model="newService.vehicleDetails.make" required>
+          </div>
+          <div class="form-group">
+            <label>Vehicle Model:</label>
+            <input v-model="newService.vehicleDetails.model" required>
+          </div>
+          <div class="form-group">
+            <label>Vehicle Year:</label>
+            <input v-model="newService.vehicleDetails.year" required>
+          </div>
+          <div class="form-group">
+            <label>VIN:</label>
+            <input v-model="newService.vehicleDetails.vin">
+          </div>
+          <div class="form-group">
+            <label>Repair Type:</label>
+            <select v-model="newService.serviceType" required>
+              <option value="maintenance">Maintenance</option>
+              <option value="repair">Repair</option>
+              <option value="inspection">Inspection</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Repair Description:</label>
+            <textarea v-model="newService.serviceDescription" required></textarea>
+          </div>
+          <div class="form-group">
+            <label>Technician Assigned:</label>
+            <input v-model="newService.technicianAssigned">
+          </div>
+          <div class="form-group">
+            <label>Status:</label>
+            <select v-model="newService.serviceStatus">
+              <option value="pending">Pending</option>
+              <option value="in-progress">In Progress</option>
+              <option value="completed">Completed</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Estimated Cost:</label>
+            <input type="number" v-model="newService.estimatedCost">
+          </div>
+          <div class="form-group">
+            <label>Actual Cost:</label>
+            <input type="number" v-model="newService.actualCost">
+          </div>
+          <div class="form-group">
+            <label>Repair Date:</label>
+            <input type="datetime-local" v-model="newService.serviceDateTime" required>
+          </div>
+          <div class="form-actions">
+            <button type="submit">Add Repair</button>
+            <button type="button" @click="showAddServiceForm = false">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+    <div class="modal" v-if="showDeleteModal">
+      <div class="modal-content" style="text-align:center;">
+        <span style="font-size:2em;">⚠️</span>
+        <h3>Are you sure you want to delete this repair?</h3>
+        <div class="form-actions" style="justify-content:center;">
+          <button @click="deleteService(deleteId)" style="background:#f44336; color:#fff;">Yes, Delete</button>
+          <button @click="showDeleteModal = false">Cancel</button>
+        </div>
+      </div>
+    </div>
+    <div v-if="toastMessage" :class="['toast', toastType]">{{ toastMessage }}</div>
+  </div>
+  <script src="src/app.js"></script>
+</body>
+</html>
