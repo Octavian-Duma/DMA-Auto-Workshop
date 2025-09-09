@@ -1,12 +1,10 @@
 # DMA-Auto-Workshop
 
-Proiect realizat în cadrul laboratorului de Transmisiei Datelor.
+DMA Auto Workshop is a client-server application for managing repairs in an auto service shop.
 
-DMA Auto Workshop este o aplicație client-server pentru gestiunea reparațiilor într-un service auto.
+## Main Features
 
-## Funcționalități principale
-
-- **CRUD complet:** Adaugă, modifică, vizualizează și șterge reparații auto.
-- **Persistență date:** Datele sunt stocate în fișiere JSON.
-- **Căutare & sortare:** Poți căuta și sorta reparațiile după diferite câmpuri (client, mașină, status, dată).
-- **Interfață:** Frontend realizat în Vue.js, backend în Node.js/Express. Comunicarea se face prin Axios.
+- **Complete CRUD:** Add, edit, view, and delete auto repairs.
+- **Data Persistence:** Data is stored in JSON files.
+- **Search & Sort:** You can search and sort repairs by different fields (client, car, status, date).
+- **Interface:** Frontend built with Vue.js, backend in Node.js/Express. Communication is done via Axios.
